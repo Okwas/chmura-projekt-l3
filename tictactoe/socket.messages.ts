@@ -1,0 +1,9 @@
+export const JOIN_GAME = 'joinGame';
+export const DISCONNECT = 'disconnect';
+export const OPPONENT_LEFT = 'opponentLeft';
+export const GAME_FOUND = 'gameFound';
+export const MOVE = 'move';
+export const AFTER_MOVE = 'gamestate';
+export const GAME_WON = 'gameWon';
+export const GAME_DRAW = 'gameDraw';
+export const GAME_LOST = 'gameLost';

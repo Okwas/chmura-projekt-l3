@@ -1,0 +1,37 @@
+version: "3.8"
+services:
+  postgres-cloud:
+    image: postgres:10.3
+    restart: always
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+    volumes:
+      - postgres-cloud:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+
+  tictactoe-backend:
+    build:
+      context: ./TicTacToe/
+      dockerfile: Backend.Dockerfile
+    environment:
+      DATABASE_URL: postgresql://postgres:postgres@postgres-cloud:5432/tictactoe?schema=public
+    ports:
+      - "3000:3000"
+      - "3001:3001"
+    depends_on:
+      - postgres-cloud
+
+  tictactoe-frontend:
+    build:
+      context: ./TicTacToe/
+      dockerfile: Frontend.Dockerfile
+    environment:
+      VITE_SOCKET_SERVER_URL: http://tictactoe-backend:3001/
+    ports:
+      - "5173:80"
+    depends_on:
+      - tictactoe-backend
+volumes:
+  postgres-cloud:

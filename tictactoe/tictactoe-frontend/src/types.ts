@@ -1,0 +1,1 @@
+export type StagesType = "login" | "game" | "draw" | "won" | "lost"

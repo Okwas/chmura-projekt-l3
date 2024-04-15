@@ -1,0 +1,34 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+  binaryTargets = ["native", "linux-musl-openssl-3.0.x"]
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Queue {
+  playerSocketId String @id
+  playerUsername String
+  createdAt DateTime @default(now())
+}
+
+model Session {
+  id String @id @default(uuid())
+  p1socketId String
+  p2socketId String
+  gamestate String @default("---------")
+  turn String @default("X")
+  p1username String
+  p2username String
+  p1symbol String @default("X")
+  p2symbol String @default("O")
+  createdAt DateTime @default(now())
+}
