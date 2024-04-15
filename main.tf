@@ -5,7 +5,7 @@ provider "aws" {
 
 # Tworzenie wirtualnej sieci prywatnej (VPC) z określonym blokiem CIDR i włączeniem wsparcia dla DNS
 resource "aws_vpc" "app_vpc" {
-  cidr_block = "10.0.0.0/16"
+  cidr_block = "10.0.0.0/16" # cała sieć ma zakres adresów od 10.0.0.0 do 10.0.255.255
   enable_dns_support = true
   enable_dns_hostnames = true
   tags = {
@@ -16,7 +16,7 @@ resource "aws_vpc" "app_vpc" {
 # Tworzenie podsieci w określonej strefie dostępności i w ramach wcześniej utworzonej VPC
 resource "aws_subnet" "app_subnet" {
   vpc_id = aws_vpc.app_vpc.id
-  cidr_block = "10.0.1.0/24"
+  cidr_block = "10.0.1.0/24" # zakres adresów od 10.0.1.0 do 10.0.1.255
   availability_zone = "us-east-1a"
   tags = {
     Name = "app_subnet"
@@ -35,7 +35,7 @@ resource "aws_internet_gateway" "app_gateway" {
 resource "aws_route_table" "app_route_table" {
   vpc_id = aws_vpc.app_vpc.id
   route {
-    cidr_block = "0.0.0.0/0"
+    cidr_block = "0.0.0.0/0" # trasa domyślna wychodzą do internetu
     gateway_id = aws_internet_gateway.app_gateway.id
   }
   tags = {
@@ -85,7 +85,7 @@ resource "aws_security_group" "app_sg" {
 
 # Uruchamianie instancji EC2 z określonym AMI, typem instancji, podsiecią, grupą zabezpieczeń, kluczem SSH oraz z automatycznym przypisaniem publicznego IP
 resource "aws_instance" "app_instance" {
-  ami                         = "ami-0a44aefa5a8df82eb" // Należy zastąpić odpowiednim AMI
+  ami                         = "ami-0a44aefa5a8df82eb"
   instance_type               = "t2.small"
   subnet_id                   = aws_subnet.app_subnet.id
   security_groups             = [aws_security_group.app_sg.id]
