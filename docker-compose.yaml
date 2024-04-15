@@ -28,9 +28,9 @@ services:
       context: ./tictactoe/
       dockerfile: Frontend.Dockerfile
     environment:
-      VITE_SOCKET_SERVER_URL: http://tictactoe-backend:3001/
+      VITE_SOCKET_SERVER_URL: /api/
     ports:
-      - "5173:80"
+      - "80:80"
     depends_on:
       - tictactoe-backend
 volumes:
