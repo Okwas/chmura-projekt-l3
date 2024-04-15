@@ -7,7 +7,7 @@ COPY socket.messages.ts ./
 
 WORKDIR /app/tictactoe-backend
 
-COPY tictactoe-backend/package*.json .
+COPY tictactoe-backend/package*.json ./
 
 RUN npm install
 
