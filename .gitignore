@@ -1,0 +1,5 @@
+labsuser.ppk
+publicKey
+.terraform.lock.hcl
+terraform.tfstate
+.terraform
