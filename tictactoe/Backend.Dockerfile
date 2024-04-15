@@ -13,7 +13,7 @@ RUN npm install
 
 # default command to be executed when the container starts, which is running the entrypoint.sh script
 COPY tictactoe-backend .
-COPY /tictactoe-backend/entrypoint.sh .
+COPY /tictactoe-backend/entrypoint.sh ./
 RUN chmod +x entrypoint.sh
 ENTRYPOINT ["/app/tictactoe-backend/entrypoint.sh"]
 

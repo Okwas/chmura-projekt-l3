@@ -8,7 +8,7 @@ COPY socket.messages.ts ./
 
 WORKDIR /app/tictactoe-frontend
 # Copy package.json and package-lock.json
-COPY tictactoe-frontend/package*.json .
+COPY tictactoe-frontend/package*.json ./
 
 # Install dependencies
 RUN npm install
@@ -16,7 +16,7 @@ RUN npm install
 # Copy shared dto and constants into the expected path within the build context
 
 # Now copy the rest of your frontend app source code
-COPY tictactoe-frontend .
+COPY tictactoe-frontend ./
 
 # Build the app
 RUN npm run build
