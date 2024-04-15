@@ -13,7 +13,7 @@ services:
 
   tictactoe-backend:
     build:
-      context: ./TicTacToe/
+      context: ./tictactoe/
       dockerfile: Backend.Dockerfile
     environment:
       DATABASE_URL: postgresql://postgres:postgres@postgres-cloud:5432/tictactoe?schema=public
@@ -25,7 +25,7 @@ services:
 
   tictactoe-frontend:
     build:
-      context: ./TicTacToe/
+      context: ./tictactoe/
       dockerfile: Frontend.Dockerfile
     environment:
       VITE_SOCKET_SERVER_URL: http://tictactoe-backend:3001/
