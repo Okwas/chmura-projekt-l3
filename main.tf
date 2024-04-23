@@ -1,126 +1,92 @@
-# Określenie źródła dostawcy terraforma dla aws oraz działających wersji dostawcy aws (od 5.2 do ostatniej przed 6.0)
-terraform {
-  required_providers {
-    aws = {
-      source  = "hashicorp/aws"
-      version = "~> 5.2"
-    }
-  }
-}
-
-# Definicja dostawcy usług (tutaj AWS) oraz określenie regionu, w którym będą tworzone zasoby (us-east-1) - konto studenckie ma przydzielnony ten region us-east-1
 provider "aws" {
   region = "us-east-1"
 }
 
-
-#Tworzenie własnego VPC (Virtual Private Cloud), na którym uruchamiane będą nasze instancje.
-resource "aws_vpc" "pwc_vpc" {
-  cidr_block           = "10.0.0.0/16" #zakres adresów IP dla VPC (10.0.0.0 - 10.0.255.255)
+resource "aws_vpc" "app_vpc" {
+  cidr_block = "10.0.0.0/16"
+  enable_dns_support = true
+  enable_dns_hostnames = true
   tags = {
-    Name = "pwc_vpc"
-    Terraform = "true"
+    Name = "app_vpc"
   }
 }
 
-#Tworzenie bramy internetowej w celu umożliwienia komunikacji między zasobami na VPC i Internetem.
-resource "aws_internet_gateway" "pwc_igw" {
-  vpc_id = aws_vpc.pwc_vpc.id #połączenie z VPC
-  tags = {
-    Name = "pwc_gateway"
-    Terraform = "true"
-  }
-}
-
-# Tworzenie podsieci w określonej strefie dostępności i w ramach wcześniej utworzonej VPC
-resource "aws_subnet" "pwc_public_subnet" {
-  vpc_id            = aws_vpc.pwc_vpc.id #połączenie z VPC
-  cidr_block        = "10.0.1.0/24" #zakres adresów IP dla podsieci (10.0.1.0 - 10.0.1.255)
+resource "aws_subnet" "app_subnet" {
+  vpc_id = aws_vpc.app_vpc.id
+  cidr_block = "10.0.1.0/24"
   availability_zone = "us-east-1a"
   tags = {
-    Name = "pwc_subnet"
-    Terraform = "true"
+    Name = "app_subnet"
   }
 }
 
-#Tworzenie tablicy trasowania dla VPC oraz określenie zasad dla routingu
-resource "aws_route_table" "pwc_route_table" {
-  vpc_id = aws_vpc.pwc_vpc.id #połączenie z VPC
+resource "aws_internet_gateway" "app_gateway" {
+  vpc_id = aws_vpc.app_vpc.id
+  tags = {
+    Name = "app_gateway"
+  }
+}
 
+resource "aws_route_table" "app_route_table" {
+  vpc_id = aws_vpc.app_vpc.id
   route {
-    cidr_block = "0.0.0.0/0" #Zdefiniowanuie domyślnej ścieżki dla całego ruchu (cały ruch nie skierowany na adres VPC zosatanie przekirowany na bramę internetową.
-    gateway_id = aws_internet_gateway.pwc_igw.id #Połączenie z bramą internetową.
+    cidr_block = "0.0.0.0/0"
+    gateway_id = aws_internet_gateway.app_gateway.id
   }
   tags = {
-    Name = "pwc_route_table"
-    Terraform = "True"
+    Name = "app_route_table"
   }
 }
 
-#Powiązanie podsieci z tablicą trasowania, abu umożliwić routing.
-resource "aws_route_table_association" "pwc_route_table_association" {
-  subnet_id      = aws_subnet.pwc_public_subnet.id #połączenie z podsieci
-  route_table_id = aws_route_table.pwc_route_table.id # połączenie z tablicą trasowania
-
+resource "aws_route_table_association" "a" {
+  subnet_id = aws_subnet.app_subnet.id
+  route_table_id = aws_route_table.app_route_table.id
 }
 
-#Tworzenie grupy bezpieczeństwa
-resource "aws_security_group" "pwc_sg" {
-  name        = "pwc sg"
-  description = "Allow web and ssh traffic"
-  vpc_id      = aws_vpc.pwc_vpc.id #połączenie z vpc
+resource "aws_security_group" "app_sg" {
+  name = "app_sg"
+  description = "Allow web and db traffic"
+  vpc_id = aws_vpc.app_vpc.id
 
-  # Zgoda na dostęp HTTP na port 80
   ingress {
-    from_port   = 80
-    to_port     = 80
-    protocol    = "tcp"
+    from_port = 80
+    to_port = 80
+    protocol = "tcp"
     cidr_blocks = ["0.0.0.0/0"]
   }
 
-  # Zgoda na dostęp SSH na port 22
   ingress {
     from_port   = 22
     to_port     = 22
     protocol    = "tcp"
-    cidr_blocks = ["0.0.0.0/0"]
+    cidr_blocks = ["0.0.0.0/0"] 
   }
 
- #Zgoda na wychodzący ruch do dowolnego celu na dowolny port z dowolnym protokołem
   egress {
-    from_port   = 0
-    to_port     = 0
-    protocol    = "-1"
-    cidr_blocks = ["0.0.0.0/0"]
-  }
-
-  # Zgoda na dostęp backendu na port 8080
-  ingress {
-    from_port   = 8080
-    to_port     = 8080
-    protocol    = "tcp"
+    from_port = 0
+    to_port = 0
+    protocol = "-1"
     cidr_blocks = ["0.0.0.0/0"]
   }
 
   tags = {
-    Name = "pwc_sg"
-    Terraform = "true"
+    Name = "app_sg"
   }
 }
 
-#Uruchomienie instancji ec2.
-resource "aws_instance" "pwc_app_ec2" {
-  ami                    = "ami-0c101f26f147fa7fd"
-  instance_type          = "t2.micro"
-  subnet_id              = aws_subnet.pwc_public_subnet.id # połączenie z podsiecią
-  vpc_security_group_ids = [aws_security_group.pwc_sg.id] # połączenie z grupą bezpieczeństwa
-  key_name               = "deployer-key" # para kluczy umożliwijąca komunikację SSh
-
+resource "aws_instance" "app_instance" {
+  ami                         = "ami-0a44aefa5a8df82eb"
+  instance_type               = "t2.small"
+  subnet_id = aws_subnet.app_subnet.id
+  security_groups = [aws_security_group.app_sg.id]
+  key_name                    = "deployer-key"
+  associate_public_ip_address = true
   tags = {
-    Name = "pwc_ec2_instance"
-    Terraform = "true"
+    Name = "app_instance"
   }
 }
+
+# BEANSTALK
 
 #Określenie przypisania ip elastycznego do vpc
 resource "aws_eip" "pwc_app_eip" {
@@ -129,7 +95,7 @@ resource "aws_eip" "pwc_app_eip" {
 
 # Przypisanie elastycznego IP do VPC.
 resource "aws_eip_association" "eip_assoc" {
-  instance_id   = aws_instance.pwc_app_ec2.id #połączenie ec2
+  instance_id   = aws_instance.app_instance.id #połączenie ec2
   allocation_id = aws_eip.pwc_app_eip.id #połączenie elastic ip
 }
 
@@ -147,35 +113,35 @@ resource "aws_elastic_beanstalk_environment" "pwc_app_env" {
   setting {
     namespace = "aws:autoscaling:launchconfiguration"
     name      = "IamInstanceProfile"
-    value     = "LabInstanceProfile"
+    value     = "GroblaInstanceProfile"
   }
 
   # Ustawienie ssh
   setting {
     namespace = "aws:autoscaling:launchconfiguration"
     name      = "EC2KeyName"
-    value     = "keypair1"
+    value = "deployer-key" # Replace with your SSH key pair name if you plan to SSH into your instance
   }
 
   # Przypisanie vpc dla środowiska
   setting {
     namespace = "aws:ec2:vpc"
     name      = "VPCId"
-    value     = aws_vpc.pwc_vpc.id
+    value     = aws_vpc.app_vpc.id
   }
 
   # Przypisanie podsieci dla środowiska
   setting {
     namespace = "aws:ec2:vpc"
     name      = "Subnets"
-    value     = join(",", [aws_subnet.pwc_public_subnet.id])
+    value     = join(",", [aws_subnet.app_subnet.id])
   }
 
   # Przypisanie grupy bezpieczeństwa dla środowiska
   setting {
     namespace = "aws:autoscaling:launchconfiguration"
     name      = "SecurityGroups"
-    value     = aws_security_group.pwc_sg.id
+    value     = aws_security_group.app_sg.id
   }
 
   # Ustawienia serwera proxy
