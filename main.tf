@@ -1,4 +1,4 @@
-# Definicja dostawcy usług (tutaj AWS) oraz określenie regionu, w którym będą tworzone zasoby (us-east-1) - konto studenckie ma przydzielnony ten region
+# Definicja dostawcy usług (tutaj AWS) oraz określenie regionu, w którym będą tworzone zasoby (us-east-1) - konto studenckie ma przydzielnony ten region us-east-1
 provider "aws" {
   region = "us-east-1"
 }
@@ -57,16 +57,16 @@ resource "aws_security_group" "app_sg" {
 
   # Zasady dla ruchu przychodzącego: HTTP (port 80) i SSH (port 22)
   ingress {
-    from_port = 80
-    to_port = 80
-    protocol = "tcp"
+    from_port   = 22
+    to_port     = 22
+    protocol    = "tcp"
     cidr_blocks = ["0.0.0.0/0"]
   }
 
   ingress {
-    from_port   = 22
-    to_port     = 22
-    protocol    = "tcp"
+    from_port = 80
+    to_port = 80
+    protocol = "tcp"
     cidr_blocks = ["0.0.0.0/0"]
   }
 
